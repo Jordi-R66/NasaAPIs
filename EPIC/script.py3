@@ -29,7 +29,15 @@ class ApiReq:
 
 		req: Response = get(url)
 
-		print(req.text)
+		if (req.status_code == 200):
+			liste = req.json()
+
+			for e in liste:
+				Y, M, D = tuple(e["date"].split("-"))
+
+				output.append(Date(int(Y), int(M), int(D)))
+		else:
+			raise Exception("")
 
 		return output
 
