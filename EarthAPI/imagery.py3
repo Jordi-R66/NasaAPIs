@@ -1,7 +1,7 @@
 import requests
 
 API_KEY: str = ""
-CRED_FILE: str = "../credentials"
+CRED_FILE: str = "credentials"
 
 def loadApiKey(filename: str) -> None:
 	global API_KEY
