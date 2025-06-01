@@ -182,3 +182,7 @@ cython_debug/
 
 # Creds
 credentials
+
+# Images
+*.png
+*.jpg
