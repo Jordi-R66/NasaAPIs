@@ -41,6 +41,59 @@ class ApiReq:
 
 		return output
 
+	def getMetaData(self, imgType: str, getLast: bool = True, date: Date=None) -> list | dict:
+		url: str = ""
+
+		output: list | dict = None
+
+		if (date == None or type(date) != Date):
+			url = f"{ApiReq.API_URL}{imgType}/images?api_key={self.api_key}"
+		else:
+			url = f"{ApiReq.API_URL}{imgType}/date/{date}?api_key={self.api_key}"
+
+		req: Response = get(url)
+
+		if (req.status_code == 200):
+			temp: list[dict] = req.json()
+
+			if (len(temp) == 0):
+				raise Exception(f"No available {imgType} image for {date}")
+
+			if getLast:
+				output = dict(temp[-1])
+			else:
+				output = list(temp)
+		else:
+			raise Exception("Can't retrieve metadata")
+
+		return output
+
+	def downloadFromMetaData(self, imgType: str, metadata: dict):
+		urlDate: str = metadata["date"].split(" ")[0].replace("-", "/")
+		filename: str = f"{metadata["image"]}.png"
+
+		url: str = f"{ApiReq.ARCHIVE_URL}{imgType}/{urlDate}/png/{filename}?api_key={self.api_key}"
+
+		req: Response = get(url)
+
+		if (req.status_code == 200):
+			fp = open(filename, "wb")
+			fp.write(req.content)
+			fp.close()
+		else:
+			raise Exception(f"Can't download {filename}")
+
+	def downloadLatestImageByDate(self, imgType: str, date: Date=None):
+		metadata: dict = self.getMetaData(imgType, date)
+
+		self.downloadFromMetaData(imgType, metadata)
+
+	def downloadAllByDate(self, imgType: str, date: Date=None):
+		metadata_list: list[dict] = self.getMetaData(imgType, False, date)
+
+		for metadata in metadata_list:
+			self.downloadFromMetaData(imgType, metadata)
+
 # -----------------------------------------------------------------------------
 
 API_KEY: str = ""
@@ -57,4 +110,4 @@ loadApiKey(CRED_FILE)
 
 Reqs = ApiReq(API_KEY)
 
-Reqs.listDates(ImgType.NATURAL)
+dates = Reqs.listDates(ImgType.NATURAL)
